@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Nested Parentheses Legibilizer</title>
+  <style>
+  :root {
+  --delimeterColour: #E06B75;
+  --tagColour: #8E94A1;
+  --equals: #ABB2BF;
+  --valColour: #92BA76;
+  --codeBg: #282C34;
+  --lineColours: #363C49;
+  --commentColour: #6A7181;
+  --linkColour: #56B6C2;
+  --hoverColour: #518BFF;
+}
+
+.delimeter {
+  color: var(--delimeterColour);
+}
+
+.delimeter::before {
+  display: inline-block;
+  color: var(--tagColour);
+}
+
+.delimiter::after {
+  display: inline;
+  color: var(--tagColour);
+}
+
+.value {
+  color: var(--valColour);
+}
+
+.attribute,
+.value,
+.identifier {
+  display: inline-block;
+}
+
+.value.link {
+  color: var(--linkColour);
+  text-decoration: underline;
+}
+
+.attribute {
+  color: #D19A66;
+  text-decoration: none !important;
+  margin-left: 0.5em;
+}
+
+.syntaxbox {
+  font-family: monaco, Consolas, Lucida Console, monospace;
+  background-color: var(--codeBg);
+  padding: 20px;
+  display: inline-flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  counter-reset: lines;
+  border-radius: 10px;
+  color: #A0A8B5;
+}
+
+.delimeter.end::before {
+  content: '</';
+}
+
+.newline {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.newline:hover {
+  background-color: var(--lineColours);
+}
+
+.newline::before {
+  color: var(--tagColour);
+  padding-right: 3em;
+  counter-increment: lines;
+  content: counter(lines);
+}
+
+.newline[data-level='1']>span:first-of-type {
+  padding-left: 1.5em;
+}
+
+.newline[data-level='2']>span:first-of-type {
+  padding-left: 3.5em;
+}
+
+.newline[data-level='3']>span:first-of-type {
+  padding-left: 5em;
+}
+
+.comment {
+  color: var(--commentColour);
+  font-style: italic;
+}
+
+.comment::before {
+  content: '<!--';
+}
+
+.comment::after {
+  content: '-->';
+}
+
+.delimeter:not([class*="end"]):hover,
+.delimeter:not([class*="end"]):hover+.delimeter.end {
+  text-decoration: 1.5px underline;
+  text-decoration-color: var(--hoverColour);
+}
+
+</style>
+</head>
+
+<body>
+  <form id="inputParensForm" >
+    <div class="inputParens" style="width: 80%; margin-left: 10%; margin-right: 10%">
+      <textarea id="inputParens" name="inputParens" rows="10" cols="70">
+(((filemod_name:etc\/pam.d\/* OR filemod_name:etc\/pam.conf) AND (device_os:"MAC" OR device_os:"LINUX")) -(process_name:usr\/bin\/docker* OR process_name:chef*\/embedded\/bin\/ruby OR process_name:System\/Library\/CoreServices\/backupd* OR process_cmdline:"\/usr\/sbin\/sosreport" OR process_name:\/usr\/bin\/dpkg OR (process_cmdline:yum AND (process_cmdline:update OR process_cmdline:upgrade OR process_cmdline:install)))) -enriched:true
+        </textarea>
+      <br />
+        <button type="button" onclick="formatWithIndentation(document.getElementById('inputParens').value)">Format with indentation</button>
+    </div>
+  </form>
+
+
+  <br /><br />
+  <span id="output" class="syntaxbox"></span>
+  <script src="script.js"></script>
+
+<script type="text/javascript">
+// Takes a string with nested parentheses and formats it using HTML/CSS
+// to display the string with each nested set of parentheses indented.
+// Any escaped parentheses (i.e. "\(" or "\)") are treated as plain text
+// and are not counted for indenting.
+// The formatted string is output to the page inside a span element.
+function formatWithIndentation(str) {
+  // Apply the "value" class to all keywords like "process_cmdline:"
+  str = str.replace(/(_|\w)+:/g, "<span class='value'>$&</span>")
+  // Keep track of the current indentation level
+  console.log(str)
+  str = str.replace(/(AND|OR|\s-)/g, "<span class='attribute'>$&</span>")
+  console.log(str)
+  let indentLevel = 0;
+
+  // The formatted string to be output to the page
+  let formattedStr = "<div>";
+
+  // Loop through the characters in the input string
+  for (let i = 0; i < str.length; i++) {
+    let char = str[i];
+
+    // If this is an opening parenthesis, increase the indentation level
+    if (char === "(" && str[i - 1] !== "\\") {
+
+      formattedStr += "<div style='margin-left: 2" + indentLevel + "px'><span class='delimeter'>(</span>";
+      indentLevel++;
+    }
+    // If this is a closing parenthesis, decrease the indentation level
+    else if (char === ")" && str[i - 1] !== "\\") {
+      formattedStr += "<span class='delimeter'>)</span></div>";
+      if (indentLevel > 0) {
+      indentLevel--;
+      }
+    }
+    // Otherwise, just add the character to the formatted string
+    else {
+      formattedStr += char;
+    }
+  }
+  console.log(formattedStr)
+  // Set text coloring on keywords
+  //formattedStr = formattedStr.replace(/(\w|_)+:/g, "<span class='value'>$1</span>")
+  // Set the innerHTML of the span element to the formatted string
+  if (document.getElementById("output") !== null) {
+  document.getElementById("output").innerHTML = formattedStr;
+  }
+}
+</script>
+
+</body>
+
+</html>
